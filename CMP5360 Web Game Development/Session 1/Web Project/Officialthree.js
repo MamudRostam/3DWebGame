@@ -5,7 +5,7 @@ import { GLTFLoader } from 'https://unpkg.com/three@0.169.0/examples/jsm/loaders
 // Scene and Camera Setup
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = -20;
+camera.position.z = -20;  // Initial camera position
 
 // Renderer Setup
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -111,43 +111,31 @@ document.addEventListener('keyup', (event) => {
     }
 });
 
-// Cubes
-const cub1 = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xff0000 }));
-scene.add(cub1);
-
-const group2 = new THREE.Group();
-const cube2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshStandardMaterial({ color: 0x0000ff }));
-group2.add(cube2);
-scene.add(group2);
-
 // Animation Loop
 function animate() {
     if (player) {
         // Move the player based on key states
         if (keyState['ArrowUp'] || keyState['w']) {
-            player.position.z += 0.1;  // Move forward (camera is looking at negative z)
+            player.position.z += 0.6;  // Move forward
         }
         if (keyState['ArrowDown'] || keyState['s']) {
-            player.position.z -= 0.1;  // Move backward
+            player.position.z -= 0.6;  // Move backward
         }
         if (keyState['ArrowLeft'] || keyState['a']) {
-            player.position.x += 0.1;  // Move left
+            player.position.x += 0.6;  // Move left
         }
         if (keyState['ArrowRight'] || keyState['d']) {
-            player.position.x -= 0.1;  // Move right
+            player.position.x -= 0.6;  // Move right
         }
-        if (keyState['ArrowUp'] || keyState['w'] || keyState['ArrowDown'] || keyState['s']) {
-            if (player.position.y > 1 && !changed) {
-                player.material.color.setHex(0xFFA500);
-                changed = true;
-            }
-        }
+
+        // Update camera position based on player's position and rotation
+        const offset = 18; // Distance between player and camera
+        camera.position.x = player.position.x - offset * Math.sin(player.rotation.y);
+        camera.position.z = player.position.z - offset * Math.cos(player.rotation.y);
+        camera.position.y = 10; // Keep the camera at a fixed height (optional)
+        camera.lookAt(player.position); // Make the camera always look at the player
     }
 
-    cub1.rotation.y += 0.02;
-    group2.rotation.y += 0.01;
-    group2.rotation.x += 0.01;
-
-    controls.update();
+    // Render the scene
     renderer.render(scene, camera);
 }
