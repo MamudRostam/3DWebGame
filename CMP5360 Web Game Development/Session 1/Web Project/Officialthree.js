@@ -100,6 +100,7 @@ const keyState = {
 
 // Key Event Listeners
 document.addEventListener('keydown', (event) => {
+    
     if (keyState.hasOwnProperty(event.key)) {
         keyState[event.key] = true;
     }
