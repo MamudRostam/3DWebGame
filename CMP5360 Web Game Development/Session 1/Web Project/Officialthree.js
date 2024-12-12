@@ -24,19 +24,7 @@ window.addEventListener('resize', onWindowResize);
 // Controls
 const controls = new OrbitControls(camera, renderer.domElement);
 
-// Floor Plane
-const addPlane = (x, y, w, h, materialAspect) => {
-    const geometry = new THREE.PlaneGeometry(w, h);
-    const material = new THREE.MeshBasicMaterial(materialAspect);
-    const plane = new THREE.Mesh(geometry, material);
-    plane.position.set(x, y, 0);
-    plane.rotation.x = -Math.PI / 2;
-    scene.add(plane);
-};
-
-const texture = new THREE.TextureLoader().load("Resource/images/goldpattern.png");
-const materialAspectFloor = { map: texture, side: THREE.DoubleSide, transparent: true };
-addPlane(0, -3.6, 30, 30, materialAspectFloor);
+let skybox;
 
 // Skybox function
 const createSkybox = () => {
@@ -44,7 +32,7 @@ const createSkybox = () => {
     loader.load("Resource/images/Nebula.jpg", (texture) => {
         const sphereGeometry = new THREE.SphereGeometry(100, 60, 40);
         const sphereMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-        const skybox = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        skybox = new THREE.Mesh(sphereGeometry, sphereMaterial);
         scene.add(skybox);
     });
 };
