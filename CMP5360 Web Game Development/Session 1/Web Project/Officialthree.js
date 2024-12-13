@@ -117,6 +117,17 @@ document.addEventListener('keyup', (event) => {
     if (keyState.hasOwnProperty(event.key)) keyState[event.key] = false;
 });
 
+// Timer
+let startTime = Date.now();
+let timerElement = document.createElement("div");
+timerElement.style.position = "absolute";
+timerElement.style.top = "10px";
+timerElement.style.right = "10px";
+timerElement.style.color = "white";
+timerElement.style.fontSize = "24px";
+timerElement.style.fontFamily = "Arial, sans-serif";
+document.body.appendChild(timerElement);
+
 // Bullets
 const bullets = [];
 document.addEventListener('mousedown', () => {
@@ -176,6 +187,10 @@ function animate() {
         camera.position.y = 10; // Fixed height for the camera
         camera.lookAt(player.position);
     }
+
+    // Update timer
+    let elapsedTime = Math.floor((Date.now() - startTime) / 1000); // in seconds
+    timerElement.textContent = `Time: ${elapsedTime}s`;
 
     // Update bullets
     bullets.forEach((bullet, index) => {
