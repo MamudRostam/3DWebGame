@@ -83,7 +83,8 @@ loader.load(
         player = gltf.scene;
         player.scale.set(0.05, 0.05, 0.05);
         player.position.y = 2; // Float above the ground
-        player.rotation.y = Math.PI; // Rotate player to face the correct direction
+        
+        
         scene.add(player);
     },
     undefined,
@@ -123,8 +124,15 @@ document.addEventListener('mousedown', () => {
         const bulletGeometry = new THREE.SphereGeometry(0.2, 16, 16);
         const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
         const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
-        bullet.position.copy(player.position);
-        bullet.quaternion.copy(player.quaternion); // Match rotation of the player
+
+        bullet.position.copy(player.position); // Start at player's position
+        
+        // Reverse the player's direction for the bullet
+        const reverseQuaternion = new THREE.Quaternion();
+        reverseQuaternion.copy(player.quaternion); // Copy player's rotation
+        reverseQuaternion.multiply(new THREE.Quaternion(0, 1, 0, 0)); // Apply a 180-degree rotation around the Y-axis
+
+        bullet.quaternion.copy(reverseQuaternion); // Set bullet's rotation
         scene.add(bullet);
         bullets.push(bullet);
     }
@@ -155,10 +163,10 @@ function animate() {
             });
         }
         if (keyState['a']) {
-            player.position.x -= 0.6; // Move left
+            player.position.x += 0.6; // Move left
         }
         if (keyState['d']) {
-            player.position.x += 0.6; // Move right
+            player.position.x -= 0.6; // Move right
         }
 
         // Update camera position to follow the player
