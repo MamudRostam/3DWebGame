@@ -4,7 +4,8 @@ import { GLTFLoader } from 'https://unpkg.com/three@0.169.0/examples/jsm/loaders
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = -20;
+camera.position.z = -18;
+camera.position.y = 5; // Slightly above the player
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -37,10 +38,14 @@ const groundGroup = new THREE.Group();
 const groundCount = 10;
 const groundLength = 50;
 const groundWidth = 50;
-const boxCountPerTile = 5;
+const boxCountPerTile = 4; // Increased box count slightly
 const groundSpeed = 0.6;
 
-const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+const groundMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0xff4500, 
+    emissive: 0xaa0000, 
+    emissiveIntensity: 0.8 
+});
 const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
 
 for (let i = 0; i < groundCount; i++) {
@@ -53,12 +58,12 @@ for (let i = 0; i < groundCount; i++) {
 
     for (let j = 0; j < boxCountPerTile; j++) {
         const box = new THREE.Mesh(
-            new THREE.BoxGeometry(2, 2, 2),
+            new THREE.BoxGeometry(3, 3, 3), // Made boxes larger for easier shooting
             boxMaterial
         );
         box.position.x = Math.random() * groundWidth - groundWidth / 2;
         box.position.z = Math.random() * groundLength - groundLength / 2;
-        box.position.y = 2; // Fixed to align with player's height
+        box.position.y = 1.5; // Adjusted height
         groundTile.add(box);
     }
 
@@ -168,6 +173,15 @@ function checkCollisions() {
                         location.reload();
                     }
                 }
+
+                bullets.forEach((bullet, bulletIndex) => {
+                    const bulletBox = new THREE.Box3().setFromObject(bullet);
+                    if (bulletBox.intersectsBox(obstacleBox)) {
+                        scene.remove(bullet);
+                        bullets.splice(bulletIndex, 1);
+                        tile.remove(box);
+                    }
+                });
             }
         });
     });
@@ -202,7 +216,7 @@ function animate() {
         const offset = 18;
         camera.position.x = player.position.x;
         camera.position.z = player.position.z - offset;
-        camera.position.y = 10;
+        camera.position.y = player.position.y + 3; // Slightly above the player
         camera.lookAt(player.position);
 
         checkCollisions();
