@@ -38,7 +38,6 @@ const groundGroup = new THREE.Group();
 const groundCount = 10;
 const groundLength = 50;
 const groundWidth = 50;
-const boxCountPerTile = 4; // Increased box count slightly
 const groundSpeed = 0.6;
 
 const groundMaterial = new THREE.MeshStandardMaterial({ 
@@ -46,7 +45,6 @@ const groundMaterial = new THREE.MeshStandardMaterial({
     emissive: 0xaa0000, 
     emissiveIntensity: 0.8 
 });
-const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
 
 for (let i = 0; i < groundCount; i++) {
     const groundTile = new THREE.Mesh(
@@ -55,17 +53,6 @@ for (let i = 0; i < groundCount; i++) {
     );
     groundTile.rotation.x = -Math.PI / 2;
     groundTile.position.z = i * groundLength;
-
-    for (let j = 0; j < boxCountPerTile; j++) {
-        const box = new THREE.Mesh(
-            new THREE.BoxGeometry(3, 3, 3), // Made boxes larger for easier shooting
-            boxMaterial
-        );
-        box.position.x = Math.random() * groundWidth - groundWidth / 2;
-        box.position.z = Math.random() * groundLength - groundLength / 2;
-        box.position.y = 1.5; // Adjusted height
-        groundTile.add(box);
-    }
 
     groundGroup.add(groundTile);
 }
@@ -99,7 +86,64 @@ scene.add(directionalLight);
 const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
 scene.add(ambientLight);
 
-const keyState = { 'w': false, 's': false, 'a': false, 'd': false };
+const keyState = { 'w': false, 's': false, 'a': false, 'd': false, ' ': false };
+
+let canShoot = true;
+const shootDelay = 300; // Delay in milliseconds between shots
+
+const shootBullet = () => {
+    if (player && canShoot) {
+        canShoot = false;
+        setTimeout(() => canShoot = true, shootDelay);
+
+        const bulletGeometry = new THREE.SphereGeometry(0.5, 16, 16); // Increased radius for larger bullets
+        const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+
+        bullet.position.copy(player.position);
+
+        const reverseQuaternion = new THREE.Quaternion();
+        reverseQuaternion.copy(player.quaternion);
+        reverseQuaternion.multiply(new THREE.Quaternion(0, 1, 0, 0));
+
+        bullet.quaternion.copy(reverseQuaternion);
+        scene.add(bullet);
+        bullets.push(bullet);
+    }
+};
+
+const bullets = [];
+
+const enemies = [];
+const spawnEnemy = () => {
+    const enemy = new THREE.Mesh(
+        new THREE.BoxGeometry(2, 2, 2), // Larger cubes
+        new THREE.MeshStandardMaterial({ color: 0x000000 }) // Black color
+    );
+
+    enemy.position.set(
+        (Math.random() - 0.5) * groundWidth * 0.8,
+        2, // Align with bullet height
+        player.position.z + 50 + Math.random() * 50
+    );
+
+    scene.add(enemy);
+    enemies.push(enemy);
+};
+setInterval(spawnEnemy, 2000);
+
+const handleInput = () => {
+    if (keyState['a']) {
+        player.position.x += 0.6;
+    }
+    if (keyState['d']) {
+        player.position.x -= 0.6;
+    }
+
+    if (keyState[' ']) {
+        shootBullet();
+    }
+};
 
 document.addEventListener('keydown', (event) => {
     if (keyState.hasOwnProperty(event.key)) keyState[event.key] = true;
@@ -108,6 +152,8 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('keyup', (event) => {
     if (keyState.hasOwnProperty(event.key)) keyState[event.key] = false;
 });
+
+document.addEventListener('mousedown', shootBullet);
 
 let startTime = Date.now();
 let timerElement = document.createElement("div");
@@ -118,6 +164,18 @@ timerElement.style.color = "white";
 timerElement.style.fontSize = "24px";
 timerElement.style.fontFamily = "Arial, sans-serif";
 document.body.appendChild(timerElement);
+
+// Score system
+let score = 0;
+const scoreElement = document.createElement("div");
+scoreElement.style.position = "absolute";
+scoreElement.style.top = "10px";
+scoreElement.style.right = "150px";
+scoreElement.style.color = "white";
+scoreElement.style.fontSize = "24px";
+scoreElement.style.fontFamily = "Arial, sans-serif";
+scoreElement.textContent = `Score: ${score}`;
+document.body.appendChild(scoreElement);
 
 // Health bar
 let health = 5;
@@ -138,57 +196,10 @@ healthBar.style.width = "100%";
 healthBar.style.backgroundColor = "red";
 healthBarContainer.appendChild(healthBar);
 
-const bullets = [];
-document.addEventListener('mousedown', () => {
-    if (player) {
-        const bulletGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
-
-        bullet.position.copy(player.position);
-
-        const reverseQuaternion = new THREE.Quaternion();
-        reverseQuaternion.copy(player.quaternion);
-        reverseQuaternion.multiply(new THREE.Quaternion(0, 1, 0, 0));
-
-        bullet.quaternion.copy(reverseQuaternion);
-        scene.add(bullet);
-        bullets.push(bullet);
-    }
-});
-
-function checkCollisions() {
-    groundGroup.children.forEach((tile) => {
-        tile.children.forEach((box) => {
-            if (player) {
-                const playerBox = new THREE.Box3().setFromObject(player);
-                const obstacleBox = new THREE.Box3().setFromObject(box);
-
-                if (playerBox.intersectsBox(obstacleBox)) {
-                    health -= 1;
-                    healthBar.style.width = `${(health / 5) * 100}%`;
-                    tile.remove(box);
-                    if (health <= 0) {
-                        alert("Game Over!");
-                        location.reload();
-                    }
-                }
-
-                bullets.forEach((bullet, bulletIndex) => {
-                    const bulletBox = new THREE.Box3().setFromObject(bullet);
-                    if (bulletBox.intersectsBox(obstacleBox)) {
-                        scene.remove(bullet);
-                        bullets.splice(bulletIndex, 1);
-                        tile.remove(box);
-                    }
-                });
-            }
-        });
-    });
-}
-
 function animate() {
     if (player) {
+        handleInput();
+
         groundGroup.position.z -= groundSpeed;
 
         groundGroup.children.forEach((tile) => {
@@ -197,14 +208,6 @@ function animate() {
             }
         });
 
-        if (keyState['a']) {
-            player.position.x += 0.6;
-        }
-        if (keyState['d']) {
-            player.position.x -= 0.6;
-        }
-
-        // Invisible boundaries
         const halfWidth = groundWidth / 2;
         if (player.position.x > halfWidth) {
             player.position.x = halfWidth;
@@ -216,16 +219,14 @@ function animate() {
         const offset = 18;
         camera.position.x = player.position.x;
         camera.position.z = player.position.z - offset;
-        camera.position.y = player.position.y + 3; // Slightly above the player
+        camera.position.y = player.position.y + 3;
         camera.lookAt(player.position);
-
-        checkCollisions();
     }
 
     let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
     timerElement.textContent = `Time: ${elapsedTime}s`;
 
-    bullets.forEach((bullet, index) => {
+    bullets.forEach((bullet, bulletIndex) => {
         const forward = new THREE.Vector3(0, 0, -1);
         forward.applyQuaternion(bullet.quaternion);
         bullet.position.addScaledVector(forward, 1);
@@ -233,7 +234,36 @@ function animate() {
         if (bullet.position.z < -100 || bullet.position.z > 100 ||
             bullet.position.x < -100 || bullet.position.x > 100) {
             scene.remove(bullet);
-            bullets.splice(index, 1);
+            bullets.splice(bulletIndex, 1);
+        }
+
+        enemies.forEach((enemy, enemyIndex) => {
+            if (bullet.position.distanceTo(enemy.position) < 1) {
+                scene.remove(enemy);
+                scene.remove(bullet);
+                enemies.splice(enemyIndex, 1);
+                bullets.splice(bulletIndex, 1);
+
+                // Increase score
+                score += 10;
+                scoreElement.textContent = `Score: ${score}`;
+            }
+        });
+    });
+
+    enemies.forEach((enemy, index) => {
+        enemy.position.z -= 0.1; // Move toward the player
+
+        if (enemy.position.distanceTo(player.position) < 1.5) {
+            health -= 1;
+            healthBar.style.width = `${(health / 5) * 100}%`;
+            scene.remove(enemy);
+            enemies.splice(index, 1);
+
+            if (health <= 0) {
+                alert("Game Over!");
+                window.location.reload();
+            }
         }
     });
 
