@@ -1,22 +1,21 @@
-//variable in ES 5
-var x=1;
-var isClicked=true;
+// Variable in ES5
+var x = 1;
+var isClicked = true;
 
-//variable in ES 6
-let i =0;
-const name ="Xi ";
-const age=100;
+// Variable in ES6
+let i = 0;
+const name = "Odyssey Shooters";
 
-//ES 5
-function fname(){
-    alert("This is function");
+// ES5
+function fname() {
+    alert("This is a function");
 }
 
-//ES 6
-const message=() =>{
-    const stringname ="This is a test function";
-    return stringname + age;
-}
+// ES6
+const message = () => {
+    const stringname = "Press Play to Begin";
+    return stringname;
+};
 
-export{name, age};
+export { name };
 export default message;

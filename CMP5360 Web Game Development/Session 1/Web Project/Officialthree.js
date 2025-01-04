@@ -5,7 +5,7 @@ import { GLTFLoader } from 'https://unpkg.com/three@0.169.0/examples/jsm/loaders
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.z = -18;
-camera.position.y = 5; // Slightly above the player
+camera.position.y = 5;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -22,7 +22,6 @@ window.addEventListener('resize', onWindowResize);
 const controls = new OrbitControls(camera, renderer.domElement);
 
 let skybox;
-
 const createSkybox = () => {
     const loader = new THREE.TextureLoader();
     loader.load("Resource/images/Nebula.jpg", (texture) => {
@@ -34,17 +33,28 @@ const createSkybox = () => {
 };
 createSkybox();
 
-const groundGroup = new THREE.Group();
-const groundCount = 10;
-const groundLength = 50;
-const groundWidth = 50;
-const groundSpeed = 0.6;
+const textureLoader = new THREE.TextureLoader();
+const groundTexture = textureLoader.load(
+    'Lava.jpg',
+    () => console.log('Texture loaded successfully'),
+    undefined,
+    (err) => console.error('Error loading texture:', err)
+);
+
+groundTexture.wrapS = THREE.RepeatWrapping;
+groundTexture.wrapT = THREE.RepeatWrapping;
+groundTexture.repeat.set(4, 4);
 
 const groundMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0xff4500, 
-    emissive: 0xaa0000, 
-    emissiveIntensity: 0.8 
+    map: groundTexture,
+    emissive: 0xaa0000,
+    emissiveIntensity: 0.4
 });
+
+const groundGroup = new THREE.Group();
+const groundWidth = 50;
+const groundLength = 50;
+const groundCount = 10;
 
 for (let i = 0; i < groundCount; i++) {
     const groundTile = new THREE.Mesh(
@@ -53,7 +63,6 @@ for (let i = 0; i < groundCount; i++) {
     );
     groundTile.rotation.x = -Math.PI / 2;
     groundTile.position.z = i * groundLength;
-
     groundGroup.add(groundTile);
 }
 scene.add(groundGroup);
@@ -81,22 +90,23 @@ loader.load(
     }
 );
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 scene.add(directionalLight);
-const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
 scene.add(ambientLight);
 
 const keyState = { 'w': false, 's': false, 'a': false, 'd': false, ' ': false };
 
 let canShoot = true;
-const shootDelay = 300; // Delay in milliseconds between shots
+const shootDelay = 300;
+const bullets = [];
 
 const shootBullet = () => {
     if (player && canShoot) {
         canShoot = false;
         setTimeout(() => canShoot = true, shootDelay);
 
-        const bulletGeometry = new THREE.SphereGeometry(0.5, 16, 16); // Increased radius for larger bullets
+        const bulletGeometry = new THREE.SphereGeometry(0.5, 16, 16);
         const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
         const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
 
@@ -112,18 +122,28 @@ const shootBullet = () => {
     }
 };
 
-const bullets = [];
+document.addEventListener('keydown', (event) => {
+    if (keyState.hasOwnProperty(event.key)) keyState[event.key] = true;
+});
+
+document.addEventListener('keyup', (event) => {
+    if (keyState.hasOwnProperty(event.key)) keyState[event.key] = false;
+});
+
+document.addEventListener('mousedown', shootBullet);
 
 const enemies = [];
 const spawnEnemy = () => {
-    const enemy = new THREE.Mesh(
-        new THREE.BoxGeometry(2, 2, 2), // Larger cubes
-        new THREE.MeshStandardMaterial({ color: 0x000000 }) // Black color
-    );
+    const enemyGeometry = new THREE.SphereGeometry(1, 32, 32);
+    const enemyMaterial = new THREE.MeshStandardMaterial({ 
+        map: textureLoader.load('Resource/images/astroid.jpg') 
+    });
+
+    const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
 
     enemy.position.set(
         (Math.random() - 0.5) * groundWidth * 0.8,
-        2, // Align with bullet height
+        2,
         player.position.z + 50 + Math.random() * 50
     );
 
@@ -145,39 +165,41 @@ const handleInput = () => {
     }
 };
 
-document.addEventListener('keydown', (event) => {
-    if (keyState.hasOwnProperty(event.key)) keyState[event.key] = true;
-});
-
-document.addEventListener('keyup', (event) => {
-    if (keyState.hasOwnProperty(event.key)) keyState[event.key] = false;
-});
-
-document.addEventListener('mousedown', shootBullet);
-
 let startTime = Date.now();
-let timerElement = document.createElement("div");
+
+// Timer Element
+const timerElement = document.createElement("div");
 timerElement.style.position = "absolute";
 timerElement.style.top = "10px";
 timerElement.style.right = "10px";
 timerElement.style.color = "white";
-timerElement.style.fontSize = "24px";
-timerElement.style.fontFamily = "Arial, sans-serif";
+timerElement.style.fontSize = "48px";
+timerElement.style.fontFamily = "sans-serif";
 document.body.appendChild(timerElement);
 
-// Score system
-let score = 0;
+// Score Element
+const scoreLabel = document.createElement("div");
+scoreLabel.style.position = "absolute";
+scoreLabel.style.top = "10px";
+scoreLabel.style.right = "320px";
+scoreLabel.style.color = "white";
+scoreLabel.style.fontSize = "48px";
+scoreLabel.style.fontFamily = "sans-serif";
+scoreLabel.textContent = "Score:";
+document.body.appendChild(scoreLabel);
+
 const scoreElement = document.createElement("div");
 scoreElement.style.position = "absolute";
 scoreElement.style.top = "10px";
-scoreElement.style.right = "150px";
+scoreElement.style.right = "240px";
 scoreElement.style.color = "white";
-scoreElement.style.fontSize = "24px";
-scoreElement.style.fontFamily = "Arial, sans-serif";
-scoreElement.textContent = `Score: ${score}`;
+scoreElement.style.fontSize = "48px";
+scoreElement.style.fontFamily = "sans-serif";
 document.body.appendChild(scoreElement);
 
-// Health bar
+let score = 0;
+
+// Health Bar
 let health = 5;
 const healthBarContainer = document.createElement("div");
 healthBarContainer.style.position = "absolute";
@@ -187,7 +209,6 @@ healthBarContainer.style.transform = "translateX(-50%)";
 healthBarContainer.style.width = "200px";
 healthBarContainer.style.height = "20px";
 healthBarContainer.style.border = "2px solid white";
-healthBarContainer.style.backgroundColor = "#333";
 document.body.appendChild(healthBarContainer);
 
 const healthBar = document.createElement("div");
@@ -200,8 +221,7 @@ function animate() {
     if (player) {
         handleInput();
 
-        groundGroup.position.z -= groundSpeed;
-
+        groundGroup.position.z -= 0.5; // Increased ground speed
         groundGroup.children.forEach((tile) => {
             if (tile.position.z + groundGroup.position.z < -groundLength) {
                 tile.position.z += groundCount * groundLength;
@@ -216,9 +236,8 @@ function animate() {
             player.position.x = -halfWidth;
         }
 
-        const offset = 18;
         camera.position.x = player.position.x;
-        camera.position.z = player.position.z - offset;
+        camera.position.z = player.position.z - 18;
         camera.position.y = player.position.y + 3;
         camera.lookAt(player.position);
     }
@@ -243,23 +262,19 @@ function animate() {
                 scene.remove(bullet);
                 enemies.splice(enemyIndex, 1);
                 bullets.splice(bulletIndex, 1);
-
-                // Increase score
                 score += 10;
-                scoreElement.textContent = `Score: ${score}`;
+                scoreElement.textContent = `${score}`;
             }
         });
     });
 
     enemies.forEach((enemy, index) => {
-        enemy.position.z -= 0.1; // Move toward the player
-
+        enemy.position.z -= 0.5; // Increased enemy speed
         if (enemy.position.distanceTo(player.position) < 1.5) {
             health -= 1;
             healthBar.style.width = `${(health / 5) * 100}%`;
             scene.remove(enemy);
             enemies.splice(index, 1);
-
             if (health <= 0) {
                 alert("Game Over!");
                 window.location.reload();
@@ -268,6 +283,6 @@ function animate() {
     });
 
     if (skybox) skybox.rotation.y += 0.001;
-
     renderer.render(scene, camera);
+    
 }
