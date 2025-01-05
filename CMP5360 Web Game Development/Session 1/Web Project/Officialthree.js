@@ -71,10 +71,10 @@ let player;
 const loader = new GLTFLoader();
 loader.setPath("Resource/3Dmodels/");
 loader.load(
-    "pod.glb",
+    "UFO MODEL.glb",
     (gltf) => {
         player = gltf.scene;
-        player.scale.set(0.05, 0.05, 0.05);
+        player.scale.set(0.60, 0.60, 0.60);
         player.position.y = 2;
         scene.add(player);
     },
@@ -206,9 +206,9 @@ healthBarContainer.style.position = "absolute";
 healthBarContainer.style.top = "10px";
 healthBarContainer.style.left = "50%";
 healthBarContainer.style.transform = "translateX(-50%)";
-healthBarContainer.style.width = "200px";
-healthBarContainer.style.height = "20px";
-healthBarContainer.style.border = "2px solid white";
+healthBarContainer.style.width = "300px"; // Increased width
+healthBarContainer.style.height = "30px"; // Increased height
+healthBarContainer.style.border = "3px solid white"; // Better visibility
 document.body.appendChild(healthBarContainer);
 
 const healthBar = document.createElement("div");
@@ -284,5 +284,4 @@ function animate() {
 
     if (skybox) skybox.rotation.y += 0.001;
     renderer.render(scene, camera);
-    
 }
