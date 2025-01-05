@@ -284,4 +284,7 @@ function animate() {
 
     if (skybox) skybox.rotation.y += 0.001;
     renderer.render(scene, camera);
+
+    
+
 }
