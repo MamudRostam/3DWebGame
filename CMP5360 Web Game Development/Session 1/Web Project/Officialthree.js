@@ -21,6 +21,8 @@ window.addEventListener('resize', onWindowResize);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
+
+//skybox
 let skybox;
 const createSkybox = () => {
     const loader = new THREE.TextureLoader();
@@ -33,6 +35,7 @@ const createSkybox = () => {
 };
 createSkybox();
 
+//Ground texture
 const textureLoader = new THREE.TextureLoader();
 const groundTexture = textureLoader.load(
     'Lava.jpg',
@@ -67,6 +70,7 @@ for (let i = 0; i < groundCount; i++) {
 }
 scene.add(groundGroup);
 
+//Custom Model for my Player
 let player;
 const loader = new GLTFLoader();
 loader.setPath("Resource/3Dmodels/");
@@ -95,8 +99,11 @@ scene.add(directionalLight);
 const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
 scene.add(ambientLight);
 
+
+//Movement 
 const keyState = { 'w': false, 's': false, 'a': false, 'd': false, ' ': false };
 
+//Shooting
 let canShoot = true;
 const shootDelay = 300;
 const bullets = [];
@@ -132,6 +139,8 @@ document.addEventListener('keyup', (event) => {
 
 document.addEventListener('mousedown', shootBullet);
 
+
+//Enemies
 const enemies = [];
 const spawnEnemy = () => {
     const enemyGeometry = new THREE.SphereGeometry(1, 32, 32);
@@ -167,7 +176,6 @@ const handleInput = () => {
 
 let startTime = Date.now();
 
-// Timer Element
 const timerElement = document.createElement("div");
 timerElement.style.position = "absolute";
 timerElement.style.top = "10px";
@@ -177,7 +185,6 @@ timerElement.style.fontSize = "48px";
 timerElement.style.fontFamily = "sans-serif";
 document.body.appendChild(timerElement);
 
-// Score Element
 const scoreLabel = document.createElement("div");
 scoreLabel.style.position = "absolute";
 scoreLabel.style.top = "10px";
@@ -199,16 +206,15 @@ document.body.appendChild(scoreElement);
 
 let score = 0;
 
-// Health Bar
 let health = 5;
 const healthBarContainer = document.createElement("div");
 healthBarContainer.style.position = "absolute";
 healthBarContainer.style.top = "10px";
 healthBarContainer.style.left = "50%";
 healthBarContainer.style.transform = "translateX(-50%)";
-healthBarContainer.style.width = "300px"; // Increased width
-healthBarContainer.style.height = "30px"; // Increased height
-healthBarContainer.style.border = "3px solid white"; // Better visibility
+healthBarContainer.style.width = "300px"; 
+healthBarContainer.style.height = "30px";
+healthBarContainer.style.border = "3px solid white";
 document.body.appendChild(healthBarContainer);
 
 const healthBar = document.createElement("div");
@@ -217,11 +223,17 @@ healthBar.style.width = "100%";
 healthBar.style.backgroundColor = "red";
 healthBarContainer.appendChild(healthBar);
 
+// Background Music 
+const backgroundMusic = new Audio('./Moving In The Shadows - The Soundlings.mp3');
+backgroundMusic.loop = true;
+backgroundMusic.volume = 0.5; 
+backgroundMusic.play();
+
 function animate() {
     if (player) {
         handleInput();
 
-        groundGroup.position.z -= 0.5; // Increased ground speed
+        groundGroup.position.z -= 0.5;
         groundGroup.children.forEach((tile) => {
             if (tile.position.z + groundGroup.position.z < -groundLength) {
                 tile.position.z += groundCount * groundLength;
@@ -269,13 +281,14 @@ function animate() {
     });
 
     enemies.forEach((enemy, index) => {
-        enemy.position.z -= 0.5; // Increased enemy speed
+        enemy.position.z -= 0.5;
         if (enemy.position.distanceTo(player.position) < 1.5) {
             health -= 1;
             healthBar.style.width = `${(health / 5) * 100}%`;
             scene.remove(enemy);
             enemies.splice(index, 1);
             if (health <= 0) {
+                backgroundMusic.pause(); 
                 alert("Game Over!");
                 window.location.reload();
             }
@@ -284,7 +297,4 @@ function animate() {
 
     if (skybox) skybox.rotation.y += 0.001;
     renderer.render(scene, camera);
-
-    
-
 }
