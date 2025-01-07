@@ -21,8 +21,7 @@ window.addEventListener('resize', onWindowResize);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
-
-//skybox
+// Skybox
 let skybox;
 const createSkybox = () => {
     const loader = new THREE.TextureLoader();
@@ -35,7 +34,7 @@ const createSkybox = () => {
 };
 createSkybox();
 
-//Ground texture
+// Ground Texture
 const textureLoader = new THREE.TextureLoader();
 const groundTexture = textureLoader.load(
     'Lava.jpg',
@@ -70,7 +69,7 @@ for (let i = 0; i < groundCount; i++) {
 }
 scene.add(groundGroup);
 
-//Custom Model for my Player
+// Custom Model for Player
 let player;
 const loader = new GLTFLoader();
 loader.setPath("Resource/3Dmodels/");
@@ -99,11 +98,10 @@ scene.add(directionalLight);
 const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
 scene.add(ambientLight);
 
-
-//Movement 
+// Movement
 const keyState = { 'w': false, 's': false, 'a': false, 'd': false, ' ': false };
 
-//Shooting
+// Shooting
 let canShoot = true;
 const shootDelay = 300;
 const bullets = [];
@@ -139,8 +137,7 @@ document.addEventListener('keyup', (event) => {
 
 document.addEventListener('mousedown', shootBullet);
 
-
-//Enemies
+// Enemies
 const enemies = [];
 const spawnEnemy = () => {
     const enemyGeometry = new THREE.SphereGeometry(1, 32, 32);
@@ -149,6 +146,9 @@ const spawnEnemy = () => {
     });
 
     const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
+
+    // Set enemy size (scale it up)
+    enemy.scale.set(2, 2, 2);
 
     enemy.position.set(
         (Math.random() - 0.5) * groundWidth * 0.8,
@@ -282,7 +282,7 @@ function animate() {
 
     enemies.forEach((enemy, index) => {
         enemy.position.z -= 0.5;
-        if (enemy.position.distanceTo(player.position) < 1.5) {
+        if (enemy.position.distanceTo(player.position) < 5) {
             health -= 1;
             healthBar.style.width = `${(health / 5) * 100}%`;
             scene.remove(enemy);
