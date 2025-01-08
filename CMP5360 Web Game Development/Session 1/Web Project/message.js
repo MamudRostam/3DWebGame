@@ -13,7 +13,7 @@ function fname() {
 
 
 const message = () => {
-    const stringname = "<span style='font-size: 48px; color:rgb(5, 5, 5);'>Press Play to Begin</span>";
+    const stringname = "<span style='font-size: 48px; color:rgb(5, 5, 5);'></span>";
     return stringname;
 };
 
