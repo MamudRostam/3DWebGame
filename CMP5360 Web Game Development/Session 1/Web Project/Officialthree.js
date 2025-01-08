@@ -161,6 +161,7 @@ const spawnEnemy = () => {
 };
 setInterval(spawnEnemy, 2000);
 
+//Only Move Left and right
 const handleInput = () => {
     if (keyState['a']) {
         player.position.x += 0.6;
@@ -173,7 +174,7 @@ const handleInput = () => {
         shootBullet();
     }
 };
-
+//UI
 let startTime = Date.now();
 
 const timerElement = document.createElement("div");
@@ -206,6 +207,7 @@ document.body.appendChild(scoreElement);
 
 let score = 0;
 
+//Health
 let health = 5;
 const healthBarContainer = document.createElement("div");
 healthBarContainer.style.position = "absolute";

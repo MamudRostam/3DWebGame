@@ -118,6 +118,10 @@ img {
     text-align: center;
 }
 
+body {
+    background-color: red;
+}
+
 .row:after {
     content: "";
     display: table;
