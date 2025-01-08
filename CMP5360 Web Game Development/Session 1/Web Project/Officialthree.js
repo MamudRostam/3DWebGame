@@ -225,7 +225,7 @@ healthBar.style.width = "100%";
 healthBar.style.backgroundColor = "red";
 healthBarContainer.appendChild(healthBar);
 
-// Background Music 
+
 const backgroundMusic = new Audio('./Moving In The Shadows - The Soundlings.mp3');
 backgroundMusic.loop = true;
 backgroundMusic.volume = 0.5; 
@@ -241,7 +241,7 @@ function animate() {
                 tile.position.z += groundCount * groundLength;
             }
         });
-
+//stops the player from going out the boundries
         const halfWidth = groundWidth / 2;
         if (player.position.x > halfWidth) {
             player.position.x = halfWidth;
